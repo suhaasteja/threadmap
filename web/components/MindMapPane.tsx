@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { MindMap, MindMapNode } from "@/lib/types";
+import type { MindMap, MindMapNode, StepEvent, TokensEvent } from "@/lib/types";
+import { Downloads } from "./Downloads";
 
 interface Props {
   mindmap: MindMap | null;
   busy: boolean;
+  steps?: StepEvent[];
+  tokens?: TokensEvent | null;
+  walltime?: number | null;
 }
 
 const COLW = 220;
@@ -13,7 +17,7 @@ const ROWH = 38;
 const PADX = 80;
 const PADY = 60;
 
-export function MindMapPane({ mindmap, busy }: Props) {
+export function MindMapPane({ mindmap, busy, steps = [], tokens = null, walltime = null }: Props) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<string | null>(null);
   const [viewBox, setViewBox] = useState({ x: 0, y: 0, w: 800, h: 600 });
@@ -38,8 +42,16 @@ export function MindMapPane({ mindmap, busy }: Props) {
 
   if (!mindmap) {
     return (
-      <div className="flex h-full items-center justify-center text-sm text-zinc-500">
-        {busy ? "Building the map…" : "Mind map appears here when extraction finishes."}
+      <div className="flex h-full flex-col">
+        <div className="border-b border-ink-600 px-4 py-3">
+          <div className="text-[11px] uppercase tracking-wider text-zinc-500">mind map</div>
+          <div className="mt-2">
+            <Downloads mindmap={null} steps={steps} tokens={tokens} walltime={walltime} />
+          </div>
+        </div>
+        <div className="flex flex-1 items-center justify-center text-center text-sm text-zinc-500 px-4">
+          {busy ? "Building the map…" : "Mind map appears here when extraction finishes."}
+        </div>
       </div>
     );
   }
@@ -89,11 +101,22 @@ export function MindMapPane({ mindmap, busy }: Props) {
   const selectedNode = selected ? mindmap.nodes.find((n) => n.id === selected) : null;
 
   return (
-    <div className="relative h-full">
+    <div className="relative flex h-full flex-col">
+      <div className="border-b border-ink-600 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div className="text-[11px] uppercase tracking-wider text-zinc-500">mind map</div>
+          <div className="text-[11px] text-zinc-500 tabular-nums">
+            {mindmap.nodes.length} nodes · {mindmap.edges.length} cross-links
+          </div>
+        </div>
+        <div className="mt-2">
+          <Downloads mindmap={mindmap} steps={steps} tokens={tokens} walltime={walltime} />
+        </div>
+      </div>
       <svg
         ref={svgRef}
         viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`}
-        className="h-full w-full cursor-grab active:cursor-grabbing select-none"
+        className="flex-1 w-full cursor-grab active:cursor-grabbing select-none"
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}

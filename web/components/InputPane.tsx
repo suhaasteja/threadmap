@@ -333,11 +333,13 @@ export function InputPane({ busy, onReplaySample, onRunLive, onReset }: Props) {
                 { ok: instruction.trim().length > 0, label: "instruction non-empty" },
               ]}
             />
-            <p className="mt-2 text-[11px] text-amber-300/80">
-              Live extraction is wired in U3 (the FastAPI service + the Vercel proxy). In U2,{" "}
-              <span className="font-semibold">Run</span> will play back the recorded sample so you
-              can see the end-to-end UX — the inputs above are real and will drive the real
-              extraction once the backend is wired.
+            <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">
+              Sends your transcript + key to{" "}
+              <code className="font-mono text-zinc-400">/api/extract</code>, which streams events
+              from the FastAPI extraction service. Set{" "}
+              <code className="font-mono text-zinc-400">THREADMAP_SERVICE_URL</code> in{" "}
+              <code className="font-mono text-zinc-400">web/.env.local</code> when running locally;
+              defaults to <code className="font-mono text-zinc-400">http://localhost:8000</code>.
             </p>
           </div>
         )}

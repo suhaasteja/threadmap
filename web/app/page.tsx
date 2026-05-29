@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { InputPane, type RunConfig } from "@/components/InputPane";
 import { TrajectoryPane } from "@/components/TrajectoryPane";
 import { MindMapPane } from "@/components/MindMapPane";
-import { replayFixture } from "@/lib/sse";
+import { replayFixture, streamFromUrl } from "@/lib/sse";
 import type {
   DoneEvent,
   MindMap,
@@ -22,6 +22,10 @@ export default function Page() {
   const [walltime, setWalltime] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // remember which models the *currently visible* run used, so the
+  // trajectory pane can price tokens even after the run completes.
+  const [activeRoot, setActiveRoot] = useState<string | undefined>();
+  const [activeSub, setActiveSub] = useState<string | undefined>();
 
   const reset = useCallback(() => {
     setStatus(null);
@@ -68,16 +72,31 @@ export default function Page() {
     [reset]
   );
 
-  const replay = useCallback(() => consume(replayFixture("/sample-trajectory.sse")), [consume]);
+  const replay = useCallback(() => {
+    setActiveRoot("gemini/gemini-2.5-pro");
+    setActiveSub("gemini/gemini-2.5-flash");
+    return consume(replayFixture("/sample-trajectory.sse"));
+  }, [consume]);
 
-  // U2: the Run button collects real inputs but still plays the fixture.
-  // U3 swaps `replayFixture` for `streamFromUrl("/api/extract", { ... })`
-  // with the BYOK header — no other UI code changes.
   const runLive = useCallback(
-    (_cfg: RunConfig) => {
-      // For now, replay the fixture so the UX stays demonstrable end-to-end.
-      // The collected config is intentionally unused until U3.
-      return consume(replayFixture("/sample-trajectory.sse"));
+    (cfg: RunConfig) => {
+      setActiveRoot(cfg.rootModel);
+      setActiveSub(cfg.subModel);
+      const stream = streamFromUrl("/api/extract", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-LLM-Provider-Key": cfg.apiKey,
+          "X-LLM-Provider": cfg.provider,
+        },
+        body: JSON.stringify({
+          conversation_text: cfg.conversation!.text,
+          instruction: cfg.instruction,
+          root_model: cfg.rootModel,
+          sub_model: cfg.subModel,
+        }),
+      });
+      return consume(stream);
     },
     [consume]
   );
@@ -94,10 +113,18 @@ export default function Page() {
           tokens={tokens}
           walltime={walltime}
           errorMsg={errorMsg}
+          rootModel={activeRoot}
+          subModel={activeSub}
         />
       </div>
       <div className="col-span-3">
-        <MindMapPane mindmap={mindmap} busy={busy && !mindmap} />
+        <MindMapPane
+          mindmap={mindmap}
+          busy={busy && !mindmap}
+          steps={steps}
+          tokens={tokens}
+          walltime={walltime}
+        />
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { StatusEvent, StepEvent, TokensEvent } from "@/lib/types";
+import { estimateCostUSD, fmtUSD } from "@/lib/costs";
 import { StepCard } from "./StepCard";
 
 interface Props {
@@ -10,9 +11,11 @@ interface Props {
   tokens: TokensEvent | null;
   walltime: number | null;
   errorMsg: string | null;
+  rootModel?: string;
+  subModel?: string;
 }
 
-export function TrajectoryPane({ status, steps, tokens, walltime, errorMsg }: Props) {
+export function TrajectoryPane({ status, steps, tokens, walltime, errorMsg, rootModel, subModel }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,6 +41,9 @@ export function TrajectoryPane({ status, steps, tokens, walltime, errorMsg }: Pr
             <>
               <Stat label="root tok" value={fmt(tokens.root_in + tokens.root_out)} />
               <Stat label="sub tok" value={fmt(tokens.sub_in + tokens.sub_out)} />
+              {rootModel && subModel && (
+                <Stat label="cost" value={fmtUSD(estimateCostUSD(rootModel, subModel, tokens))} />
+              )}
             </>
           )}
           {walltime != null && <Stat label="wall" value={`${walltime.toFixed(1)}s`} />}
