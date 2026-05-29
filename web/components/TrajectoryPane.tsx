@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { StatusEvent, StepEvent, TokensEvent } from "@/lib/types";
 import { estimateCostUSD, fmtUSD } from "@/lib/costs";
 import { StepCard } from "./StepCard";
@@ -11,12 +11,39 @@ interface Props {
   tokens: TokensEvent | null;
   walltime: number | null;
   errorMsg: string | null;
+  busy: boolean;
   rootModel?: string;
   subModel?: string;
 }
 
-export function TrajectoryPane({ status, steps, tokens, walltime, errorMsg, rootModel, subModel }: Props) {
+export function TrajectoryPane({
+  status,
+  steps,
+  tokens,
+  walltime,
+  errorMsg,
+  busy,
+  rootModel,
+  subModel,
+}: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [showWarmup, setShowWarmup] = useState(false);
+
+  // RLM cold starts on Render can take 10–20s before the first event.
+  // After ~6s of silence post-run-start, show a "warming up" hint so the
+  // UI doesn't look frozen. Hide again as soon as anything streams in.
+  useEffect(() => {
+    if (!busy) {
+      setShowWarmup(false);
+      return;
+    }
+    if (status || steps.length) {
+      setShowWarmup(false);
+      return;
+    }
+    const t = setTimeout(() => setShowWarmup(true), 6000);
+    return () => clearTimeout(t);
+  }, [busy, status, steps.length]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -59,12 +86,30 @@ export function TrajectoryPane({ status, steps, tokens, walltime, errorMsg, root
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto scroll-thin px-4 py-3 space-y-2">
-        {steps.length === 0 && !status && (
-          <div className="mt-12 text-center text-sm text-zinc-500">
-            Trajectory steps appear here as the RLM runs.
-            <br />
-            <span className="text-zinc-600">
-              Each step shows the code the model wrote and the result it observed.
+        {steps.length === 0 && !status && !busy && (
+          <div className="mx-auto mt-10 max-w-md space-y-3 text-sm text-zinc-400">
+            <p className="text-center text-zinc-300">
+              This pane is the point of using RLM.
+            </p>
+            <p>
+              The Recursive Language Model treats your transcript as a variable in a Python REPL.
+              It writes code to slice the conversation, dispatches cheaper sub-LLM calls over
+              the slices, validates its own output against a schema, and only then submits a
+              <span className="text-zinc-200"> mind map</span>.
+            </p>
+            <p className="text-zinc-500">
+              Each step below shows the code it wrote, the model that ran, the tokens spent, and the
+              observation it acted on next. Hide this pane and you can&rsquo;t tell this apart from any
+              &ldquo;AI summary&rdquo; tool. Surface it and the artifact becomes auditable.
+            </p>
+          </div>
+        )}
+        {showWarmup && (
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+            <span className="font-semibold">Warming up the sandbox…</span>{" "}
+            <span className="text-amber-300/80">
+              The extraction service runs the model&rsquo;s code in a Pyodide-in-Deno sandbox. First
+              run after a cold start can take 10–20s before any output. Subsequent runs are quick.
             </span>
           </div>
         )}

@@ -155,10 +155,22 @@ export function InputPane({ busy, onReplaySample, onRunLive, onReset }: Props) {
   return (
     <div className="flex h-full flex-col">
       <div className="border-b border-ink-600 px-4 py-3">
-        <div className="text-[11px] uppercase tracking-wider text-zinc-500">input</div>
+        <div className="flex items-center justify-between">
+          <div className="text-[11px] uppercase tracking-wider text-zinc-500">input</div>
+          <a
+            href="https://github.com/suhaasteja/threadmap"
+            target="_blank"
+            rel="noreferrer"
+            className="text-[11px] text-zinc-500 underline decoration-dotted hover:text-zinc-300"
+          >
+            github
+          </a>
+        </div>
         <h1 className="mt-0.5 text-lg font-semibold text-white">threadmap</h1>
         <p className="mt-0.5 text-[11px] text-zinc-500">
-          One Claude conversation → navigable mind map via DSPy RLM.
+          One Claude conversation → navigable mind map. The mind map is the artifact you keep; the
+          <span className="text-zinc-400"> trajectory</span> in the middle is what makes it
+          auditable.
         </p>
       </div>
 

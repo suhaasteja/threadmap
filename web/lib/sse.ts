@@ -34,9 +34,23 @@ export async function* streamFromUrl(
   url: string,
   init: RequestInit
 ): AsyncGenerator<StreamEvent> {
-  const res = await fetch(url, { ...init, headers: { ...(init.headers || {}) } });
+  let res: Response;
+  try {
+    res = await fetch(url, { ...init, headers: { ...(init.headers || {}) } });
+  } catch (e) {
+    throw new Error(`network: ${e instanceof Error ? e.message : String(e)}`);
+  }
   if (!res.ok || !res.body) {
-    throw new Error(`request failed: ${res.status} ${res.statusText}`);
+    let detail = "";
+    try {
+      const txt = await res.text();
+      const parsed = JSON.parse(txt);
+      if (parsed && typeof parsed.error === "string") detail = parsed.error;
+      else if (txt) detail = txt;
+    } catch {
+      /* not JSON, fall through */
+    }
+    throw new Error(`${res.status} ${res.statusText}${detail ? ` — ${detail}` : ""}`);
   }
   const reader = res.body.getReader();
   const decoder = new TextDecoder("utf-8");

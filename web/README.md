@@ -32,8 +32,8 @@ npm run start
   per-step token meters, auto-scroll, expand/collapse reasoning/code/output.
 - Mind map pane: drag-pan, scroll-zoom, click-to-collapse, detail panel with cross-links.
 
-## Not yet wired (next phases)
+## Deploy
 
-- U2: input modes, BYOK key field, editable instruction.
-- U3: real `/api/extract` proxy → Render service.
-- U4: deploy on Vercel.
+See [`../DEPLOY.md`](../DEPLOY.md). TL;DR: set `THREADMAP_SERVICE_URL` and
+`THREADMAP_SHARED_SECRET` in the Vercel project (Root Directory: `web`), and the
+matching secret on Render.

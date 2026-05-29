@@ -102,22 +102,23 @@ export default function Page() {
   );
 
   return (
-    <div className="grid h-screen w-screen grid-cols-12 bg-ink-900 text-zinc-100">
-      <div className="col-span-4 border-r border-ink-600 bg-ink-800/40">
+    <div className="bg-ink-900 text-zinc-100 lg:grid lg:h-screen lg:w-screen lg:grid-cols-12">
+      <div className="border-b border-ink-600 bg-ink-800/40 lg:col-span-4 lg:border-b-0 lg:border-r">
         <InputPane busy={busy} onReplaySample={replay} onRunLive={runLive} onReset={reset} />
       </div>
-      <div className="col-span-5 border-r border-ink-600">
+      <div className="border-b border-ink-600 lg:col-span-5 lg:border-b-0 lg:border-r min-h-[60vh] lg:min-h-0">
         <TrajectoryPane
           status={status}
           steps={steps}
           tokens={tokens}
           walltime={walltime}
           errorMsg={errorMsg}
+          busy={busy}
           rootModel={activeRoot}
           subModel={activeSub}
         />
       </div>
-      <div className="col-span-3">
+      <div className="lg:col-span-3 min-h-[60vh] lg:min-h-0">
         <MindMapPane
           mindmap={mindmap}
           busy={busy && !mindmap}
