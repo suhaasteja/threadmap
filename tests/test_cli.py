@@ -25,7 +25,7 @@ def _fake_mm() -> MindMap:
 
 def test_build_end_to_end(tmp_path, monkeypatch):
     # avoid needing a real API key for this test
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
     monkeypatch.setattr(
         extract, "build_mindmap", lambda doc, instr: (_fake_mm(), [{"reasoning": "stub"}])
     )
@@ -45,7 +45,7 @@ def test_build_end_to_end(tmp_path, monkeypatch):
 
 
 def test_build_rejects_unknown_format(tmp_path, monkeypatch):
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
     result = runner.invoke(
         app,
         ["build", "examples/sample_conversation.md", "--out", str(tmp_path), "--format", "pdf"],
@@ -55,7 +55,7 @@ def test_build_rejects_unknown_format(tmp_path, monkeypatch):
 
 
 def test_build_errors_on_missing_input(tmp_path, monkeypatch):
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
     result = runner.invoke(app, ["build", str(tmp_path / "nope.md")])
     assert result.exit_code == 1
     assert "not found" in result.output
