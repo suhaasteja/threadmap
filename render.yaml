@@ -1,0 +1,16 @@
+# Render Blueprint — deploy with: https://render.com/docs/blueprint-spec
+# After pushing this file, in Render: New + > Blueprint > pick this repo.
+services:
+  - type: web
+    name: threadmap-extract
+    runtime: docker
+    plan: starter            # bump to standard if cold starts hurt; sandbox needs RAM
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: THREADMAP_SHARED_SECRET
+        sync: false          # set in Render dashboard; the Vercel proxy sends this header
+      - key: THREADMAP_ALLOWED_ORIGINS
+        value: "https://threadmap.vercel.app,http://localhost:3000"

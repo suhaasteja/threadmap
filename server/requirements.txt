@@ -1,0 +1,5 @@
+# the existing core
+-e ../.
+# service-only
+fastapi>=0.115
+uvicorn[standard]>=0.30
